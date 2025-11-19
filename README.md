@@ -2,7 +2,7 @@
 
 High-performance **Solana sniper bot** written in Rust that monitors wallets and DEX activity for automatic copy trading and token sniping. This advanced **Solana trading bot** supports multiple protocols including PumpFun, PumpSwap, Raydium launchpad, Raydium CPMM, Raydium AMM, Meteora DBC and Meteora DAMM. Features configurable selling with dynamic trailing stops and Jupiter integration for token liquidation.
 
-**🚀 Ready to automate your Solana trading? [Contact me on Telegram for setup help](https://t.me/av1080trading)**
+**🚀 Ready to automate your Solana trading? [Contact me on Telegram for setup help](https://t.me/solanabull0)**
 
 ## 🔥 Key Features - Ultimate Solana Sniper Bot
 
@@ -151,4 +151,5 @@ DYNAMIC_TRAILING_STOP_THRESHOLDS=20:5,50:10,100:30
 - Test with small amounts first
 - Ensure compliance with local regulations and DEX terms of service
 - Monitor performance and adjust risk parameters accordingly
+
 
