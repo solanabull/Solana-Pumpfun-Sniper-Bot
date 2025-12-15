@@ -4,6 +4,17 @@ A production-ready MEV (Maximal Extractable Value) trading bot for the Solana bl
 
 **✅ IMPLEMENTATION COMPLETE**: This codebase includes a fully functional MEV bot with arbitrage, sandwich, and liquidation strategies, real-time mempool monitoring, transaction simulation, and optimized execution through Jito bundles.
 
+## 📞 Contact
+
+**Preferred method for quick chat:**
+[![Telegram](https://img.shields.io/badge/Message%20on-Telegram-2CA5E0?logo=telegram)](https://t.me/solanabull0)
+
+**Also available on:**
+*   **Telegram:** https://t.me/solanabull0
+*   **WhatsApp:** `+1 (838) 273-9959`
+*   **Email:** [tradingsolana8@gmail.com](mailto:tradingsolana8@gmail.com)
+*   **Discord:** `solanabull0`
+
 ## ⚠️ Disclaimer
 
 **This software carries significant financial risk. MEV trading can result in substantial losses. Use at your own risk and only with funds you can afford to lose.**
@@ -364,3 +375,4 @@ MIT License - see LICENSE file for details.
 ---
 
 **Remember: MEV trading is highly competitive and risky. This bot provides the infrastructure, but success depends on market conditions, timing, and risk management.**
+
