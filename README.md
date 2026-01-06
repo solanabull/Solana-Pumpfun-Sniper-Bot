@@ -275,8 +275,3 @@ Start small, monitor performance, and trade responsibly.
 
 ⭐ If this repository helps you, please **star it** — it improves GitHub & Google visibility.
 
-```
-
-
-Just say the word 🔥
-```
