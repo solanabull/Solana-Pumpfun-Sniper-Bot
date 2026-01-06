@@ -1,87 +1,52 @@
-mod engine;
-mod strategies;
-mod dex;
-mod utils;
-
 use std::sync::Arc;
-use tokio::sync::RwLock;
-use tracing::{info, error, warn};
+use tokio::time::{self, Duration};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use engine::{Engine, EngineConfig};
-use utils::config::Config;
-use utils::logger::init_logger;
+mod config;
+mod monitors;
+mod traders;
+mod utils;
+mod types;
 
-/// Main entry point for the Solana MEV Bot
-///
-/// This bot implements multiple MEV strategies including:
-/// - Arbitrage between DEXes (Raydium, Orca, OpenBook)
-/// - Sandwich attacks (optional)
-/// - Liquidation monitoring (optional)
-///
-/// The bot uses real-time mempool monitoring, transaction simulation,
-/// and optimized execution through Jito bundles for minimal latency.
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize logging
-    init_logger()?;
+    // Initialize tracing
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "solana_pumpfun_sniper=info".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
-    info!("Starting Solana MEV Bot v{}", env!("CARGO_PKG_VERSION"));
+    tracing::info!("Starting Solana Pump.fun Sniper Bot (Rust Edition)");
 
     // Load configuration
-    let config = Config::load("config/config.toml")?;
-    info!("Configuration loaded successfully");
+    let config = Arc::new(config::load_config()?);
+    tracing::info!("Configuration loaded successfully");
 
-    // Validate configuration
-    config.validate()?;
+    // Create bot instance
+    let bot = Arc::new(solana_pumpfun_sniper::PumpFunSniper::new().await?);
 
-    // Check if kill switch is enabled
-    if config.risk_management.kill_switch {
-        error!("Kill switch is enabled. Bot will not start.");
-        return Ok(());
-    }
+    // Start the bot
+    bot.start().await?;
 
-    // Initialize Solana client
-    let solana_client = Arc::new(config.create_solana_client()?);
-
-    // Initialize engine with configuration
-    let engine_config = EngineConfig {
-        solana_client: solana_client.clone(),
-        config: config.clone(),
-    };
-
-    let engine = Arc::new(RwLock::new(Engine::new(engine_config).await?));
-
-    // Setup graceful shutdown handler
-    let engine_clone = engine.clone();
-    let shutdown_handle = tokio::spawn(async move {
-        tokio::signal::ctrl_c().await.expect("Failed to listen for shutdown signal");
-        warn!("Shutdown signal received, stopping bot...");
-
-        let mut engine = engine_clone.write().await;
-        if let Err(e) = engine.stop().await {
-            error!("Error during shutdown: {}", e);
+    // Set up signal handling for graceful shutdown
+    let bot_clone = Arc::clone(&bot);
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c().await.unwrap();
+        tracing::info!("Received shutdown signal");
+        if let Err(e) = bot_clone.stop().await {
+            tracing::error!("Error during shutdown: {}", e);
         }
+        std::process::exit(0);
     });
 
-    // Start the MEV engine
-    info!("Starting MEV engine...");
-    let engine_clone = engine.clone();
-    let engine_handle = tokio::spawn(async move {
-        let mut engine = engine_clone.write().await;
-        if let Err(e) = engine.run().await {
-            error!("Engine error: {}", e);
-        }
-    });
-
-    // Wait for either completion or shutdown
-    tokio::select! {
-        _ = engine_handle => {
-            info!("Engine completed");
-        }
-        _ = shutdown_handle => {
-            info!("Bot shutdown complete");
-        }
+    // Health check loop
+    let mut interval = time::interval(Duration::from_secs(60));
+    loop {
+        interval.tick().await;
+        let status = bot.status().await;
+        tracing::info!("Health check: {}", status);
     }
-
-    Ok(())
 }
